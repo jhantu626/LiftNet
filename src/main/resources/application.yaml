@@ -1,0 +1,23 @@
+server:
+  port: 9097
+
+spring:
+  application:
+    name: LiftNet
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/liftnet
+    username: root
+    password: pritam@123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  security:
+    user:
+      name: pritam
+      password: bala
