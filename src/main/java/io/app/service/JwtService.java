@@ -1,19 +1,17 @@
-package io.app.server;
+package io.app.service;
 
+import io.app.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.hibernate.dialect.unique.CreateTableUniqueDelegate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.security.Key;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -22,6 +20,10 @@ public class JwtService {
 
     public String extractUsername(String token){
         return extractClaims(token,Claims::getSubject);
+    }
+
+    public boolean isTokenValid(String token){
+        return !isTokenExpired(token);
     }
 
     public boolean isTokenValid(UserDetails userDetails,String token){
@@ -37,6 +39,16 @@ public class JwtService {
         return extractClaims(token,Claims::getExpiration);
     }
 
+    public Long getUserIdFromToken(String token){
+        return extractClaims(token).get("id",Long.class);
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities(String token){
+        String role=extractClaims(token).get("role",String.class);
+        SimpleGrantedAuthority simpleGrantedAuthority=new SimpleGrantedAuthority(role);
+        return List.of(simpleGrantedAuthority);
+    }
+
     private <T> T extractClaims(String token, Function<Claims,T> resolver){
         Claims claims=extractClaims(token);
         return resolver.apply(claims);
@@ -46,19 +58,22 @@ public class JwtService {
         return Jwts.parserBuilder()
                 .setSigningKey(signInKey())
                 .build()
-                .parseClaimsJwt(token)
+                .parseClaimsJws(token)
                 .getBody();
     }
 
-    public String generateToken(UserDetails userDetails){
-        return generateToken(userDetails,new HashMap<>());
+    public String generateToken(User user){
+        HashMap<String,Object> extraClaims=new HashMap<>();
+        extraClaims.put("id",user.getId());
+        extraClaims.put("role",user.getRole().name());
+        return generateToken(user.getEmail(),extraClaims);
     }
 
-    private String generateToken(UserDetails userDetails, Map<String, Object> extraClaims) {
+    private String generateToken(String subject, Map<String, Object> extraClaims) {
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis()+1000L * 60 * 60 * 24 * 365L * 5))
                 .signWith(signInKey())

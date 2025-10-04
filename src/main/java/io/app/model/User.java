@@ -12,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -29,9 +28,20 @@ public class User implements UserDetails {
     private String email;
     private String firstName;
     private String lastName;
+    @Enumerated(EnumType.STRING)
     private Role role;
     private String otp;
+    @Column(unique = true)
+    private String resumeUrl;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_skills",
+            joinColumns = @JoinColumn(name="user_id"),
+            inverseJoinColumns = @JoinColumn(name = "skill_id")
+    )
+    private Set<Skill> skills=new HashSet<>();
     @Temporal(TemporalType.TIMESTAMP)
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Location location;
     private LocalDateTime otpExpiration;
     private boolean isActive;
 
