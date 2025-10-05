@@ -10,12 +10,15 @@ import io.app.service.JwtService;
 import io.app.service.UserService;
 import io.app.utils.ModelMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.endpoint.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -32,10 +35,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ApiResponse updateSkills(Set<Skill> skills) {
-        String username= SecurityContextHolder.getContext().getAuthentication().getName();
+    @Transactional
+    public ApiResponse updateSkills(Set<Skill> skills,String token) {
+        String username= jwtService.extractUsername(token.substring(7));
+        log.info("username is: {}",username);
+        User user=repository.findByEmail(username)
+                .orElseThrow(()->new ResourceNotFoundException("Invalid Credentials"));
+        user.setSkills(skills);
         return ApiResponse.builder()
-                .message(username)
+                .message("Updated Successfully!")
+                .status(true)
                 .build();
     }
 }

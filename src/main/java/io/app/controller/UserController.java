@@ -32,8 +32,9 @@ public class UserController {
     * Update Skills of User
     */
     @PatchMapping("/skill")
-    public ApiResponse updateSkills(@RequestBody Set<Skill> skills){
-        return service.updateSkills(skills);
+    public ApiResponse updateSkills(@RequestBody Set<Skill> skills,
+                                    @RequestHeader("Authorization") String token){
+        return service.updateSkills(skills,token);
     }
 
 }

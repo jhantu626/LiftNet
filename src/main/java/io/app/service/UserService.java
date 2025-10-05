@@ -9,5 +9,5 @@ import java.util.Set;
 
 public interface UserService {
     public UserDto profile(String token);
-    public ApiResponse updateSkills(Set<Skill> skills);
+    public ApiResponse updateSkills(Set<Skill> skills,String token);
 }
